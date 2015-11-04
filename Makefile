@@ -1,2 +1,2 @@
 pi: pi.c
-	gcc $< -o $@
+	gcc $< -o $@ -lm -pthread
