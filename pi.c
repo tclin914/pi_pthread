@@ -4,9 +4,9 @@
 #include <pthread.h>
 #include <sys/sysinfo.h>
 #include <math.h>
-#define BILLION  1E9; 
-    
-#define DEBUG
+#define BILLION  1E9
+#define pi 3.141592653589793
+/* #define DEBUG */
 
 double randNumGen();
 void *calc(void *threadid);
@@ -56,13 +56,16 @@ int main(int argc, const char *argv[])
     double accum = ( requestEnd.tv_sec - requestStart.tv_sec )
            + ( requestEnd.tv_nsec - requestStart.tv_nsec ) / BILLION;
 
+    long double result =  4 * (number_in_circle / (long double)number_of_tosses);
 #ifdef DEBUG
     printf("run time = %lf\n", accum);
     printf("number_of_tosses = %llu number_in_circle = %llu\n", number_of_tosses, number_in_circle);
-    printf("Pi = %f\n", 4 * (number_in_circle / (double)number_of_tosses));
+    printf("Pi = %.15Lf\n", result);
+    printf("Diff = %.15Lf\n", fabsl(pi - result));
     fflush(stdout);
 #endif
-
+    printf("%.15Lf\n", result);
+    fflush(stdout);
     pthread_mutex_destroy(&mutex);
     free(thread_handles);
     return 0;
@@ -79,6 +82,10 @@ void *calc(void *threadid) {
     long long i;
     long long n = number_of_tosses / thread_count;
     long long in_circle = 0;
+
+    if (threadid == 0) {
+        n += number_of_tosses % thread_count;
+    }
 
     for (i = 0; i < n; i++) {
         double x = randNumGen();
