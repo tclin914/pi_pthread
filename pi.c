@@ -5,11 +5,13 @@
 #include <sys/sysinfo.h>
 #include <math.h>
 #define BILLION  1E9; 
+    
+#define DEBUG
 
 double randNumGen();
 void *calc(void *threadid);
 
-long thread_count = 100;
+long thread_count;
 long long number_of_tosses;
 long long number_in_circle = 0;
 
@@ -26,10 +28,14 @@ int main(int argc, const char *argv[])
     struct timespec requestStart, requestEnd;
     clock_gettime(CLOCK_REALTIME, &requestStart);
 
+#ifdef DEBUG
     printf("This system has %d processors configured and "
             "%d processors available.\n",
             get_nprocs_conf(), get_nprocs());
+    fflush(stdout);
+#endif
 
+    thread_count = get_nprocs();
     number_of_tosses = strtoll(argv[1], NULL, 10);
 
     srand((unsigned)time(NULL));
@@ -48,12 +54,14 @@ int main(int argc, const char *argv[])
 
     clock_gettime(CLOCK_REALTIME, &requestEnd);
     double accum = ( requestEnd.tv_sec - requestStart.tv_sec )
-           + ( requestEnd.tv_nsec - requestStart.tv_nsec )
-                  / BILLION;
+           + ( requestEnd.tv_nsec - requestStart.tv_nsec ) / BILLION;
+
+#ifdef DEBUG
     printf("run time = %lf\n", accum);
     printf("number_of_tosses = %llu number_in_circle = %llu\n", number_of_tosses, number_in_circle);
     printf("Pi = %f\n", 4 * (number_in_circle / (double)number_of_tosses));
     fflush(stdout);
+#endif
 
     pthread_mutex_destroy(&mutex);
     free(thread_handles);
@@ -77,7 +85,6 @@ void *calc(void *threadid) {
         double y = randNumGen();
         double result = (x * x) + (y * y);
 
-        fflush(stdout);
         if (result < 1) {
             in_circle += 1;            
         }    
